@@ -77,6 +77,15 @@ powershell -ExecutionPolicy Bypass -File .\scripts\stop-backend.ps1
 - Un vendedor solo edita sus propios productos y solo ve los pedidos que los contienen.
 - Contraseñas con BCrypt, access token de 15 minutos y refresh token de 7 días con rotación.
 
+## Integración con el frontend
+
+El cliente React de la Evaluación Parcial 3 consume esta API:
+
+- Frontend: <https://github.com/Maeton/Fullstack2>
+- Origen permitido por CORS: `http://localhost:5173`
+- El frontend adjunta el access token en `Authorization: Bearer ...`, renueva la sesión con `/api/auth/refresh` y controla rutas por rol.
+- Las restricciones del frontend se refuerzan en el backend con `@PreAuthorize` (por ejemplo, CLIENTE recibe `403` al intentar administrar usuarios o productos ajenos).
+
 ## Estructura
 
 ```
