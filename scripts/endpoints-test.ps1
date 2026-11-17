@@ -185,29 +185,24 @@ $editarAdmin = Llamar -Metodo PUT -Ruta "/api/productos/$($productoAdmin.id)" -T
 }
 Verificar "PUT /api/productos/{id} (ADMIN dueño) -> 200" ($editarAdmin.Status -eq 200) "status=$($editarAdmin.Status)"
 
-# POST /api/productos (VENDEDOR)
+# POST /api/productos (VENDEDOR solo lectura)
 $crearProductoVendedor = Llamar -Metodo POST -Ruta "/api/productos" -Token $vendedor.accessToken -Body @{
-    nombre = "Producto Vendedor $sufijo"; descripcion = "Creado por vendedor"; precio = 900
+    nombre = "Producto Vendedor $sufijo"; descripcion = "Intento de vendedor"; precio = 900
     stock = 4; categoria = "Frutas"; imagenUrl = "naranja.jpg"
 }
-$productoVendedor = $crearProductoVendedor.Body | ConvertFrom-Json
-Verificar "POST /api/productos (VENDEDOR) -> 201" ($crearProductoVendedor.Status -eq 201) "status=$($crearProductoVendedor.Status)"
+Verificar "POST /api/productos (VENDEDOR) -> 403" ($crearProductoVendedor.Status -eq 403) "status=$($crearProductoVendedor.Status)"
 
-# PUT producto propio del VENDEDOR
-$editarVendedor = Llamar -Metodo PUT -Ruta "/api/productos/$($productoVendedor.id)" -Token $vendedor.accessToken -Body @{
-    nombre = "Producto Vendedor Editado"; descripcion = "Editado"; precio = 950; stock = 6; categoria = "Frutas"
-}
-Verificar "PUT /api/productos/{id} (VENDEDOR dueño) -> 200" ($editarVendedor.Status -eq 200) "status=$($editarVendedor.Status)"
-
-# PUT producto ajeno (debe fallar)
+# PUT / DELETE producto desde VENDEDOR (solo ADMIN gestiona)
 $editarAjeno = Llamar -Metodo PUT -Ruta "/api/productos/$($productoAdmin.id)" -Token $vendedor.accessToken -Body @{
     nombre = "Intento ajeno"; precio = 1; stock = 1; categoria = "Frutas"
 }
-Verificar "PUT /api/productos/{id} (VENDEDOR ajeno) -> 403" ($editarAjeno.Status -eq 403) "status=$($editarAjeno.Status)"
+Verificar "PUT /api/productos/{id} (VENDEDOR) -> 403" ($editarAjeno.Status -eq 403) "status=$($editarAjeno.Status)"
 
-# DELETE /api/productos/{id} (VENDEDOR dueño)
-$borrarVendedor = Llamar -Metodo DELETE -Ruta "/api/productos/$($productoVendedor.id)" -Token $vendedor.accessToken
-Verificar "DELETE /api/productos/{id} (VENDEDOR dueño) -> 204" ($borrarVendedor.Status -eq 204) "status=$($borrarVendedor.Status)"
+$borrarVendedor = Llamar -Metodo DELETE -Ruta "/api/productos/$($productoAdmin.id)" -Token $vendedor.accessToken
+Verificar "DELETE /api/productos/{id} (VENDEDOR) -> 403" ($borrarVendedor.Status -eq 403) "status=$($borrarVendedor.Status)"
+
+$listarVendedor = Llamar -Metodo GET -Ruta "/api/productos" -Token $vendedor.accessToken
+Verificar "GET /api/productos (VENDEDOR) -> 200" ($listarVendedor.Status -eq 200) "status=$($listarVendedor.Status)"
 
 # DELETE /api/productos/{id} (ADMIN)
 $borrarAdmin = Llamar -Metodo DELETE -Ruta "/api/productos/$($productoAdmin.id)" -Token $admin.accessToken
@@ -216,7 +211,7 @@ Verificar "DELETE /api/productos/{id} (ADMIN) -> 204" ($borrarAdmin.Status -eq 2
 Write-Host "`n=== PEDIDOS ===" -ForegroundColor Cyan
 
 # Producto dedicado para no consumir el stock de los productos semilla
-$crearProductoPedido = Llamar -Metodo POST -Ruta "/api/productos" -Token $vendedor.accessToken -Body @{
+$crearProductoPedido = Llamar -Metodo POST -Ruta "/api/productos" -Token $admin.accessToken -Body @{
     nombre = "Producto Pedido $sufijo"; descripcion = "Producto para pruebas de pedidos"; precio = 1000
     stock = 100; categoria = "Frutas"; imagenUrl = "naranja.jpg"
 }
@@ -244,6 +239,7 @@ Verificar "GET /api/pedidos/mis-pedidos (ADMIN) -> 403" ((Llamar -Metodo GET -Ru
 # GET /api/pedidos (ADMIN)
 $todosPedidos = Llamar -Metodo GET -Ruta "/api/pedidos" -Token $admin.accessToken
 Verificar "GET /api/pedidos (ADMIN) -> 200" ($todosPedidos.Status -eq 200) "status=$($todosPedidos.Status)"
+Verificar "GET /api/pedidos (VENDEDOR) -> 200" ((Llamar -Metodo GET -Ruta "/api/pedidos" -Token $vendedor.accessToken).Status -eq 200) ""
 Verificar "GET /api/pedidos (CLIENTE) -> 403" ((Llamar -Metodo GET -Ruta "/api/pedidos" -Token $cliente.accessToken).Status -eq 403) ""
 
 # GET /api/pedidos/{id}
@@ -251,7 +247,7 @@ $pedidoId = $pedido.id
 $obtenerPedido = Llamar -Metodo GET -Ruta "/api/pedidos/$pedidoId" -Token $cliente.accessToken
 Verificar "GET /api/pedidos/{id} (dueño) -> 200" ($obtenerPedido.Status -eq 200) "status=$($obtenerPedido.Status)"
 Verificar "GET /api/pedidos/{id} (ADMIN) -> 200" ((Llamar -Metodo GET -Ruta "/api/pedidos/$pedidoId" -Token $admin.accessToken).Status -eq 200) ""
-Verificar "GET /api/pedidos/{id} (VENDEDOR ajeno) -> 403" ((Llamar -Metodo GET -Ruta "/api/pedidos/$pedidoId" -Token $vendedor.accessToken).Status -eq 403) ""
+Verificar "GET /api/pedidos/{id} (VENDEDOR) -> 200" ((Llamar -Metodo GET -Ruta "/api/pedidos/$pedidoId" -Token $vendedor.accessToken).Status -eq 200) ""
 Verificar "GET /api/pedidos/{id inexistente} -> 404" ((Llamar -Metodo GET -Ruta "/api/pedidos/999999" -Token $admin.accessToken).Status -eq 404) ""
 
 # PATCH /api/pedidos/{id}/estado
@@ -259,11 +255,11 @@ $cambiarEstado = Llamar -Metodo PATCH -Ruta "/api/pedidos/$pedidoId/estado" -Tok
 $pedidoConfirmado = $cambiarEstado.Body | ConvertFrom-Json
 Verificar "PATCH /api/pedidos/{id}/estado (ADMIN) -> 200" ($cambiarEstado.Status -eq 200) "status=$($cambiarEstado.Status)"
 Verificar "PATCH /api/pedidos/{id}/estado cambia a CONFIRMADO" ($pedidoConfirmado.estado -eq "CONFIRMADO") "estado=$($pedidoConfirmado.estado)"
-Verificar "PATCH /api/pedidos/{id}/estado (VENDEDOR) -> 200" ((Llamar -Metodo PATCH -Ruta "/api/pedidos/$pedidoId/estado" -Token $vendedor.accessToken -Body @{ estado = "ENTREGADO" }).Status -eq 200) ""
+Verificar "PATCH /api/pedidos/{id}/estado (VENDEDOR) -> 403" ((Llamar -Metodo PATCH -Ruta "/api/pedidos/$pedidoId/estado" -Token $vendedor.accessToken -Body @{ estado = "ENTREGADO" }).Status -eq 403) ""
 Verificar "PATCH /api/pedidos/{id}/estado (CLIENTE) -> 403" ((Llamar -Metodo PATCH -Ruta "/api/pedidos/$pedidoId/estado" -Token $cliente.accessToken -Body @{ estado = "CANCELADO" }).Status -eq 403) ""
 
 # Limpieza del producto de pedidos
-Llamar -Metodo DELETE -Ruta "/api/productos/$($productoPedido.id)" -Token $vendedor.accessToken | Out-Null
+Llamar -Metodo DELETE -Ruta "/api/productos/$($productoPedido.id)" -Token $admin.accessToken | Out-Null
 
 Write-Host ""
 if ($script:fallos -eq 0) {

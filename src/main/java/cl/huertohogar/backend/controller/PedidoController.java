@@ -51,28 +51,31 @@ public class PedidoController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Listar todos los pedidos (ADMIN)")
+    @PreAuthorize("hasAnyRole('ADMIN','VENDEDOR')")
+    @Operation(summary = "Listar todos los pedidos (ADMIN o VENDEDOR)")
     public List<PedidoResponse> listarTodos() {
         return pedidoService.listarTodos();
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Obtener un pedido (dueño o ADMIN)")
+    @Operation(summary = "Obtener un pedido (dueño, VENDEDOR o ADMIN)")
     public PedidoResponse obtener(@PathVariable Long id, Authentication authentication) {
-        return pedidoService.obtener(id, authentication.getName(), esAdmin(authentication));
+        return pedidoService.obtener(
+                id, authentication.getName(), esStaff(authentication));
     }
 
     @PatchMapping("/{id}/estado")
-    @PreAuthorize("hasAnyRole('ADMIN','VENDEDOR')")
-    @Operation(summary = "Cambiar el estado de un pedido (ADMIN o VENDEDOR)")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Cambiar el estado de un pedido (ADMIN)")
     public PedidoResponse cambiarEstado(@PathVariable Long id,
                                         @Valid @RequestBody EstadoPedidoRequest request) {
         return pedidoService.cambiarEstado(id, request.estado());
     }
 
-    private boolean esAdmin(Authentication authentication) {
+    private boolean esStaff(Authentication authentication) {
         return authentication.getAuthorities().stream()
-                .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
+                .anyMatch(authority ->
+                        "ROLE_ADMIN".equals(authority.getAuthority())
+                                || "ROLE_VENDEDOR".equals(authority.getAuthority()));
     }
 }

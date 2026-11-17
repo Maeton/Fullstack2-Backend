@@ -59,7 +59,7 @@ public class SecurityConfig {
                                 "/error"
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/productos/**").permitAll()
-                        .requestMatchers("/api/productos/**").hasAnyRole("ADMIN", "VENDEDOR")
+                        .requestMatchers("/api/productos/**").hasRole("ADMIN")
                         .requestMatchers("/api/usuarios/**").hasRole("ADMIN")
                         .requestMatchers("/api/pedidos/**").authenticated()
                         .anyRequest().authenticated()

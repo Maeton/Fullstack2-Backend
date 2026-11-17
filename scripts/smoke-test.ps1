@@ -160,10 +160,10 @@ $datosVendedor = $loginVendedor.Body | ConvertFrom-Json
 Verificar "Login VENDEDOR -> 200" ($loginVendedor.Status -eq 200)
 
 $pedidoAjeno = Llamar -Metodo GET -Ruta "/api/pedidos/$($datosPedido.id)" -Token $datosVendedor.accessToken
-Verificar "VENDEDOR no ve un pedido ajeno -> 403" ($pedidoAjeno.Status -eq 403) "status=$($pedidoAjeno.Status)"
+Verificar "VENDEDOR ve el detalle de un pedido -> 200" ($pedidoAjeno.Status -eq 200) "status=$($pedidoAjeno.Status)"
 
 $todosPedidosVendedor = Llamar -Metodo GET -Ruta "/api/pedidos" -Token $datosVendedor.accessToken
-Verificar "VENDEDOR no lista todos los pedidos -> 403" ($todosPedidosVendedor.Status -eq 403) "status=$($todosPedidosVendedor.Status)"
+Verificar "VENDEDOR lista todos los pedidos -> 200" ($todosPedidosVendedor.Status -eq 200) "status=$($todosPedidosVendedor.Status)"
 
 $editarAjeno = Llamar -Metodo PUT -Ruta "/api/productos/$($productoSmoke.id)" -Token $datosVendedor.accessToken -Body @{
     nombre    = "Intento ajeno"
@@ -171,7 +171,7 @@ $editarAjeno = Llamar -Metodo PUT -Ruta "/api/productos/$($productoSmoke.id)" -T
     stock     = 1
     categoria = "Frutas"
 }
-Verificar "VENDEDOR no edita un producto ajeno -> 403" ($editarAjeno.Status -eq 403) "status=$($editarAjeno.Status)"
+Verificar "VENDEDOR no edita productos -> 403" ($editarAjeno.Status -eq 403) "status=$($editarAjeno.Status)"
 
 # 10. Refresh token
 $refresh = Llamar -Metodo POST -Ruta "/api/auth/refresh" -Body @{

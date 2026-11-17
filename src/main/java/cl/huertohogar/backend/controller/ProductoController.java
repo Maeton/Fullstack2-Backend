@@ -24,7 +24,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/productos")
-@Tag(name = "Productos", description = "Catálogo público y CRUD para ADMIN/VENDEDOR")
+@Tag(name = "Productos", description = "Catálogo público y CRUD para ADMIN")
 public class ProductoController {
 
     private final ProductoService productoService;
@@ -47,18 +47,18 @@ public class ProductoController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAnyRole('ADMIN','VENDEDOR')")
+    @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "Crear un producto")
+    @Operation(summary = "Crear un producto (ADMIN)")
     public ProductoResponse crear(Authentication authentication,
                                   @Valid @RequestBody ProductoRequest request) {
         return productoService.crear(authentication.getName(), request);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','VENDEDOR')")
+    @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "Actualizar un producto (ADMIN o vendedor dueño)")
+    @Operation(summary = "Actualizar un producto (ADMIN)")
     public ProductoResponse actualizar(@PathVariable Long id,
                                        Authentication authentication,
                                        @Valid @RequestBody ProductoRequest request) {
@@ -68,9 +68,9 @@ public class ProductoController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasAnyRole('ADMIN','VENDEDOR')")
+    @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "Desactivar un producto (ADMIN o vendedor dueño)")
+    @Operation(summary = "Desactivar un producto (ADMIN)")
     public void desactivar(@PathVariable Long id, Authentication authentication) {
         productoService.desactivar(id, authentication.getName(), esAdmin(authentication));
     }

@@ -6,7 +6,7 @@ Levanta el backend y ejecuta las verificaciones desde la raíz del proyecto:
 
 - `.\mvnw.cmd test`: ejecuta los tests de contexto con JUnit.
 - `.\scripts\smoke-test.ps1`: ejecuta las 21 verificaciones de humo.
-- `.\scripts\endpoints-test.ps1`: ejecuta las 50 verificaciones de endpoints.
+- `.\scripts\endpoints-test.ps1`: ejecuta las 51 verificaciones de endpoints.
 
 ```powershell
 .\mvnw.cmd -DskipTests package
@@ -55,14 +55,14 @@ powershell -ExecutionPolicy Bypass -File .\scripts\stop-backend.ps1
 | GET | `/api/auth/me` | Autenticado |
 | GET | `/api/productos` | Público |
 | GET | `/api/productos/{id}` | Público |
-| POST | `/api/productos` | VENDEDOR / ADMIN |
-| PUT | `/api/productos/{id}` | VENDEDOR dueño / ADMIN |
-| DELETE | `/api/productos/{id}` | VENDEDOR dueño / ADMIN |
+| POST | `/api/productos` | ADMIN |
+| PUT | `/api/productos/{id}` | ADMIN |
+| DELETE | `/api/productos/{id}` | ADMIN |
 | POST | `/api/pedidos` | CLIENTE |
 | GET | `/api/pedidos/mis-pedidos` | CLIENTE |
-| GET | `/api/pedidos` | ADMIN |
-| GET | `/api/pedidos/{id}` | Dueño / ADMIN |
-| PATCH | `/api/pedidos/{id}/estado` | VENDEDOR / ADMIN |
+| GET | `/api/pedidos` | VENDEDOR / ADMIN |
+| GET | `/api/pedidos/{id}` | Dueño / VENDEDOR / ADMIN |
+| PATCH | `/api/pedidos/{id}/estado` | ADMIN |
 | GET | `/api/usuarios` | ADMIN |
 | GET | `/api/usuarios/{id}` | ADMIN |
 | POST | `/api/usuarios` | ADMIN |
@@ -74,7 +74,8 @@ powershell -ExecutionPolicy Bypass -File .\scripts\stop-backend.ps1
 - El registro público siempre asigna `CLIENTE`; los roles altos los crea un `ADMIN` o vienen en los datos semilla.
 - El total y los subtotales del pedido se calculan en el servidor.
 - El stock se descuenta de forma transaccional; si falta stock, la operación completa se revierte con `422`.
-- Un vendedor solo edita sus propios productos y solo ve los pedidos que los contienen.
+- Un vendedor puede consultar el catálogo y las órdenes, pero solo el ADMIN gestiona productos y estados de pedido.
+- El checkout guarda el nombre y teléfono de contacto junto con la dirección de entrega.
 - Contraseñas con BCrypt, access token de 15 minutos y refresh token de 7 días con rotación.
 
 ## Integración con el frontend

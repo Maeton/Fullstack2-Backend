@@ -11,6 +11,12 @@ public record PedidoRequest(
         List<@Valid ItemPedidoRequest> items,
 
         @Size(max = 255, message = "La dirección no puede superar 255 caracteres")
-        String direccionEntrega
+        String direccionEntrega,
+
+        @Size(max = 120, message = "El nombre de contacto no puede superar 120 caracteres")
+        String nombreContacto,
+
+        @Size(max = 30, message = "El teléfono de contacto no puede superar 30 caracteres")
+        String telefonoContacto
 ) {
 }

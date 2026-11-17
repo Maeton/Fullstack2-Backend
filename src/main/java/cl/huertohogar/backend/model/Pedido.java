@@ -45,6 +45,12 @@ public class Pedido {
     @Column(length = 255)
     private String direccionEntrega;
 
+    @Column(length = 120)
+    private String nombreContacto;
+
+    @Column(length = 30)
+    private String telefonoContacto;
+
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DetallePedido> detalles = new ArrayList<>();
 
@@ -102,6 +108,22 @@ public class Pedido {
 
     public void setDireccionEntrega(String direccionEntrega) {
         this.direccionEntrega = direccionEntrega;
+    }
+
+    public String getNombreContacto() {
+        return nombreContacto;
+    }
+
+    public void setNombreContacto(String nombreContacto) {
+        this.nombreContacto = nombreContacto;
+    }
+
+    public String getTelefonoContacto() {
+        return telefonoContacto;
+    }
+
+    public void setTelefonoContacto(String telefonoContacto) {
+        this.telefonoContacto = telefonoContacto;
     }
 
     public List<DetallePedido> getDetalles() {

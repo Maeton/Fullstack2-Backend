@@ -47,9 +47,11 @@ public class PedidoService {
         pedido.setCliente(cliente);
         pedido.setEstado(EstadoPedido.PENDIENTE);
         pedido.setDireccionEntrega(
-                request.direccionEntrega() != null && !request.direccionEntrega().isBlank()
-                        ? request.direccionEntrega().trim()
-                        : cliente.getDireccion());
+                textoOTexto(request.direccionEntrega(), cliente.getDireccion()));
+        pedido.setNombreContacto(
+                textoOTexto(request.nombreContacto(), cliente.getNombre()));
+        pedido.setTelefonoContacto(
+                textoOTexto(request.telefonoContacto(), cliente.getTelefono()));
 
         BigDecimal total = BigDecimal.ZERO;
 
@@ -109,9 +111,9 @@ public class PedidoService {
     }
 
     @Transactional(readOnly = true)
-    public PedidoResponse obtener(Long id, String emailSolicitante, boolean esAdmin) {
+    public PedidoResponse obtener(Long id, String emailSolicitante, boolean accesoTotal) {
         Pedido pedido = buscarEntidad(id);
-        validarAcceso(pedido, emailSolicitante, esAdmin);
+        validarAcceso(pedido, emailSolicitante, accesoTotal);
         return PedidoResponse.from(pedido);
     }
 
@@ -136,8 +138,12 @@ public class PedidoService {
                 .orElseThrow(() -> new RecursoNoEncontradoException("Pedido", id));
     }
 
-    private void validarAcceso(Pedido pedido, String emailSolicitante, boolean esAdmin) {
-        if (esAdmin) {
+    private String textoOTexto(String valor, String respaldo) {
+        return valor != null && !valor.isBlank() ? valor.trim() : respaldo;
+    }
+
+    private void validarAcceso(Pedido pedido, String emailSolicitante, boolean accesoTotal) {
+        if (accesoTotal) {
             return;
         }
 
